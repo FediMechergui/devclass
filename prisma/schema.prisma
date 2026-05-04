@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  githubLogin   String?
+  experience    String?
+  interests     String     // Stored as JSON array string for sqlite compatibility if needed, or Prisma might fake it? Wait, sqlite doesn't support String[] natively in prisma unless it's JSON? Let's use simple String for sqlite.
+  createdAt     DateTime   @default(now())
+  attempts      Attempt[]
+}
+
+model Attempt {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  variant       String
+  startedAt     DateTime   @default(now())
+  completedAt   DateTime?
+  answers       Answer[]
+  scoreANL      Float?
+  scoreCRT      Float?
+  scoreCRE      Float?
+  scoreDOM      Float?
+  scoreFOC      Float?
+  scoreCUR      Float?
+  scoreINT      Float?
+  scoreREG      Float?
+  scoreCOM      Float?
+  primaryClass  String?
+  multiclass    String     // Stored as JSON string
+  planJson      String?    // Stored as JSON string
+}
+
+model Answer {
+  id            String     @id @default(cuid())
+  attemptId     String
+  attempt       Attempt    @relation(fields: [attemptId], references: [id])
+  questionId    String
+  value         String     // JSON string
+  rubricJson    String?    // JSON string
+}

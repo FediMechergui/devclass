@@ -1,0 +1,57 @@
+- id: q_focus_01
+  type: likert
+  prompt: "I can sustain deep focus on a single problem for 2+ hours without checking notifications."
+  loadings:
+    FOC: 1.0
+    REG: 0.3
+
+- id: q_int_creative_01
+  type: forced_choice
+  prompt: "Your manager asks for a feature. You think it's the wrong solution. You..."
+  options:
+    - text: "Build it as asked, raise concerns in the PR."
+      loadings: { COM: 0.5, REG: 0.7 }
+    - text: "Push back before starting; propose an alternative."
+      loadings: { COM: 0.8, INT: 0.6, CRT: 0.5 }
+    - text: "Build what you think is right, then justify it."
+      loadings: { CRE: 0.4, INT: 0.5, COM: -0.4 }
+    - text: "Build both, present a comparison."
+      loadings: { ANL: 0.5, CRE: 0.5, FOC: -0.3 }
+
+- id: q_anl_01
+  type: likert
+  prompt: "When debugging, I map out the entire call stack mentally before changing code."
+  loadings:
+    ANL: 1.0
+    FOC: 0.4
+
+- id: q_crt_01
+  type: likert
+  prompt: "I often find myself rewriting my own code immediately after writing it because I spot edge cases."
+  loadings:
+    CRT: 1.0
+    INT: 0.4
+    FOC: -0.2
+
+- id: q_cur_01
+  type: likert
+  prompt: "If a library magically solves my problem, I feel uncomfortable until I read its source code to know how."
+  loadings:
+    CUR: 1.0
+    DOM: 0.3
+
+- id: q_dom_01
+  type: forced_choice
+  prompt: "When joining a new project in an unfamiliar industry, what do you learn first?"
+  options:
+    - text: "The tech stack, deployment pipeline, and database schema."
+      loadings: { ANL: 0.6, DOM: -0.2 }
+    - text: "The business model, the competitors, and how the company makes money."
+      loadings: { DOM: 1.0, COM: 0.5 }
+
+- id: q_reg_01
+  type: likert
+  prompt: "When someone strongly critiques my architecture in a review, I rarely feel defensive."
+  loadings:
+    REG: 1.0
+    COM: 0.5
