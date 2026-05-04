@@ -19,8 +19,11 @@ const config: Config = {
         parchment: {
           100: "#E8DCC4",
           200: "#D5C8AC",
+          300: "#C7BA9F",
           400: "#B5AB97",
+          500: "#938B78",
           600: "#7A7464",
+          700: "#625B4C",
           800: "#4A4538",
         },
         gold: {
@@ -37,6 +40,10 @@ const config: Config = {
         warning: "#E8B86A",
         danger: "#D86A6A",
         info: "#5E96C4",
+        coral: "#FF7A70",
+        lime: "#A7E86F",
+        violet: "#B58CFF",
+        sky: "#67D7FF",
         cls: {
           architect: "#7BA8D9",
           artisan: "#D9A87B",

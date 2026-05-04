@@ -90,9 +90,18 @@ export interface AttemptDocument {
   confidenceLabel?: "definitive" | "leaning" | "hybrid";
   integritySuspect?: boolean;
   integrityNote?: string;
+  centroidRate?: number;
+  acquiescenceRate?: number;
   githubSignals?: GitHubSignals;
   signalBoosts?: Partial<ScoreVector>;
+  githubInsights?: GitHubInsightReport;
   plan?: unknown;
+}
+
+export interface GitHubLanguageStat {
+  name: string;
+  count: number;
+  pct: number;
 }
 
 export interface GitHubSignals {
@@ -101,6 +110,8 @@ export interface GitHubSignals {
   followers: number;
   /** distinct top-level languages across non-fork public repos */
   languages: string[];
+  /** most common primary languages across non-fork public repos */
+  topLanguages?: GitHubLanguageStat[];
   /** count of non-fork repos with a non-empty README */
   documentedRepos: number;
   /** push events in the last 90 days */
@@ -110,6 +121,13 @@ export interface GitHubSignals {
   /** average number of repos updated per active day (proxy for context-switching) */
   meanReposPerActiveDay: number;
   fetchedAt: string;
+}
+
+export interface GitHubInsightReport {
+  headline: string;
+  summary: string;
+  takes: { title: string; detail: string }[];
+  cautions: string[];
 }
 
 export interface BuildLogEntry {

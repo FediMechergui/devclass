@@ -69,12 +69,12 @@ export function BuildLog({ defaultMetric }: { defaultMetric?: MetricCode }) {
 
   return (
     <div className="space-y-4">
-      <div className="border border-parchment-800/40 p-4">
+      <div className="signal-card border border-parchment-800/40 bg-ink-base/45 p-4">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="One terse note. What you tried. What broke. What you learned."
-          className="w-full bg-transparent text-sm text-parchment-100 placeholder:text-parchment-700 border-none outline-none resize-none font-body"
+          className="w-full resize-none border-none bg-transparent font-body text-sm text-parchment-100 outline-none placeholder:text-parchment-700"
           rows={2}
           maxLength={600}
         />
@@ -96,7 +96,7 @@ export function BuildLog({ defaultMetric }: { defaultMetric?: MetricCode }) {
           <button
             onClick={submit}
             disabled={busy || !text.trim()}
-            className="text-xs font-mono text-gold hover:text-gold-bright disabled:opacity-40 uppercase tracking-widest"
+            className="border border-gold/45 px-3 py-1.5 text-xs font-mono uppercase tracking-widest text-gold hover:bg-gold/10 hover:text-gold-bright disabled:opacity-40"
           >
             {busy ? "saving…" : "log it →"}
           </button>
@@ -113,12 +113,19 @@ export function BuildLog({ defaultMetric }: { defaultMetric?: MetricCode }) {
           </li>
         ) : (
           entries.map((e) => (
-            <li key={e.id} className="border-l-2 border-parchment-800/60 pl-3">
+            <li
+              key={e.id}
+              className="border-l-2 border-parchment-800/60 bg-ink-base/35 p-3 pl-4"
+            >
               <div className="text-[10px] font-mono text-parchment-700 flex gap-2">
                 <span>{new Date(e.createdAt).toLocaleString()}</span>
-                {e.metric ? <span className="text-gold">· {e.metric}</span> : null}
+                {e.metric ? (
+                  <span className="text-gold">· {e.metric}</span>
+                ) : null}
               </div>
-              <p className="text-sm text-parchment-200 mt-0.5 whitespace-pre-wrap">{e.text}</p>
+              <p className="text-sm text-parchment-200 mt-0.5 whitespace-pre-wrap">
+                {e.text}
+              </p>
             </li>
           ))
         )}

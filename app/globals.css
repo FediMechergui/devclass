@@ -27,6 +27,12 @@
   --teal: #5EC4C0;
   --teal-deep: #3A8985;
 
+  /* LIVE ACCENTS */
+  --coral: #FF7A70;
+  --lime: #A7E86F;
+  --violet: #B58CFF;
+  --sky: #67D7FF;
+
   /* SEMANTIC */
   --success: #6FCF97;
   --warning: #E8B86A;
@@ -61,8 +67,11 @@ html, body {
 
 body {
   background:
-    radial-gradient(circle at 20% 10%, rgba(94, 196, 192, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(201, 168, 106, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(103, 215, 255, 0.07), transparent 28%),
+    linear-gradient(225deg, rgba(255, 122, 112, 0.07), transparent 32%),
+    linear-gradient(315deg, rgba(167, 232, 111, 0.045), transparent 30%),
+    repeating-linear-gradient(90deg, rgba(232, 220, 196, 0.025) 0 1px, transparent 1px 88px),
+    repeating-linear-gradient(0deg, rgba(232, 220, 196, 0.018) 0 1px, transparent 1px 88px),
     var(--ink-base);
 }
 
@@ -74,7 +83,7 @@ body {
 h1, h2, h3, h4, h5 {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: var(--parchment-100);
 }
 
@@ -135,6 +144,36 @@ a:hover { color: var(--teal-bright); }
   100% { background-position: 200% 0; }
 }
 
+@keyframes live-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes image-pan {
+  0% { transform: scale(1.04) translate3d(-1%, -1%, 0); }
+  100% { transform: scale(1.1) translate3d(1.5%, 1%, 0); }
+}
+
+@keyframes line-rise {
+  from { transform: translateY(22px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes signal-scan {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+@keyframes meter-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes crest-orbit {
+  to { transform: rotate(360deg); }
+}
+
 .gold-shimmer {
   background: linear-gradient(90deg, var(--gold-deep) 0%, var(--gold-bright) 50%, var(--gold-deep) 100%);
   background-size: 200% 100%;
@@ -142,6 +181,95 @@ a:hover { color: var(--teal-bright); }
   background-clip: text;
   color: transparent;
   animation: shimmer 6s linear infinite;
+}
+
+.live-gradient-text {
+  background: linear-gradient(95deg, var(--gold-bright), var(--sky), var(--lime), var(--coral));
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: live-shift 9s ease-in-out infinite;
+}
+
+.alive-surface {
+  position: relative;
+  overflow: hidden;
+}
+
+.alive-surface::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0%, rgba(125, 216, 213, 0.06) 28%, transparent 52%),
+    linear-gradient(245deg, transparent 0%, rgba(255, 122, 112, 0.05) 38%, transparent 66%);
+  mix-blend-mode: screen;
+  opacity: 0.75;
+}
+
+.energy-grid {
+  background-image:
+    linear-gradient(rgba(232, 220, 196, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 220, 196, 0.04) 1px, transparent 1px);
+  background-size: 42px 42px;
+  -webkit-mask-image: linear-gradient(90deg, black, transparent 85%);
+  mask-image: linear-gradient(90deg, black, transparent 85%);
+}
+
+.image-pan {
+  animation: image-pan 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.glass-panel {
+  border: 1px solid rgba(232, 220, 196, 0.14);
+  background: linear-gradient(145deg, rgba(26, 32, 50, 0.84), rgba(11, 15, 26, 0.68));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.class-glow {
+  filter: drop-shadow(0 0 22px currentColor);
+}
+
+.signal-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.signal-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  transform: translateX(-120%);
+  animation: signal-scan 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.meter-fill {
+  transform-origin: left center;
+  animation: meter-fill 900ms var(--ease-out) both;
+}
+
+.line-rise {
+  animation: line-rise 550ms var(--ease-out) both;
+}
+
+.crest-orbit {
+  position: relative;
+}
+
+.crest-orbit::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border: 1px dashed currentColor;
+  opacity: 0.32;
+  animation: crest-orbit 32s linear infinite;
 }
 
 /* Scrollbar */

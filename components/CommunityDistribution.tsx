@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 interface DistRow {
   id: string;
@@ -10,8 +11,15 @@ interface DistRow {
   pct: number;
 }
 
-export function CommunityDistribution({ highlightId }: { highlightId?: string }) {
-  const [data, setData] = useState<{ total: number; distribution: DistRow[] } | null>(null);
+export function CommunityDistribution({
+  highlightId,
+}: {
+  highlightId?: string;
+}) {
+  const [data, setData] = useState<{
+    total: number;
+    distribution: DistRow[];
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/community/distribution")
@@ -35,7 +43,7 @@ export function CommunityDistribution({ highlightId }: { highlightId?: string })
         {data.total} attempts · anonymous
       </div>
       <div className="space-y-1.5">
-        {data.distribution.map((row) => {
+        {data.distribution.map((row, index) => {
           const isYou = row.id === highlightId;
           return (
             <div key={row.id} className="flex items-center gap-3 text-xs">
@@ -46,9 +54,12 @@ export function CommunityDistribution({ highlightId }: { highlightId?: string })
                 {row.name}
                 {isYou ? " (you)" : ""}
               </div>
-              <div className="flex-1 h-2 bg-parchment-800/40 relative">
-                <div
-                  className="absolute inset-y-0 left-0"
+              <div className="relative h-2 flex-1 overflow-hidden bg-parchment-800/40">
+                <motion.div
+                  className="absolute inset-y-0 left-0 origin-left"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.7, delay: 0.04 * index }}
                   style={{
                     width: `${Math.max(2, row.pct)}%`,
                     background: row.color,
@@ -56,7 +67,9 @@ export function CommunityDistribution({ highlightId }: { highlightId?: string })
                   }}
                 />
               </div>
-              <div className="w-10 text-right font-mono text-parchment-500">{row.pct}%</div>
+              <div className="w-10 text-right font-mono text-parchment-500">
+                {row.pct}%
+              </div>
             </div>
           );
         })}

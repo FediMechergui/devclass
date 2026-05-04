@@ -101,6 +101,28 @@ export async function extractGitHubSignals(
   const languages = Array.from(
     new Set(ownRepos.map((r) => r.language).filter((l): l is string => !!l))
   );
+  const languageCounts = ownRepos.reduce<Record<string, number>>(
+    (acc, repo) => {
+      if (!repo.language) return acc;
+      acc[repo.language] = (acc[repo.language] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
+  const totalLanguageRepos = Object.values(languageCounts).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
+  const topLanguages = Object.entries(languageCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 6)
+    .map(([name, count]) => ({
+      name,
+      count,
+      pct: totalLanguageRepos
+        ? Math.round((count / totalLanguageRepos) * 100)
+        : 0,
+    }));
 
   // README coverage — sample the 8 most recently updated repos to keep this cheap.
   const sample = ownRepos.slice(0, 8);
@@ -112,19 +134,25 @@ export async function extractGitHubSignals(
   // Push activity in last 90 days
   const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
   const recentPushes = events.filter(
-    (e) => e.type === "PushEvent" && new Date(e.created_at).getTime() >= ninetyDaysAgo
+    (e) =>
+      e.type === "PushEvent" &&
+      new Date(e.created_at).getTime() >= ninetyDaysAgo,
   );
   const activeDays = new Set(
-    recentPushes.map((e) => new Date(e.created_at).toISOString().slice(0, 10))
+    recentPushes.map((e) => new Date(e.created_at).toISOString().slice(0, 10)),
   ).size;
-  const reposTouched = new Set(recentPushes.map((e) => e.repo?.name).filter(Boolean));
-  const meanReposPerActiveDay = activeDays > 0 ? reposTouched.size / activeDays : 0;
+  const reposTouched = new Set(
+    recentPushes.map((e) => e.repo?.name).filter(Boolean),
+  );
+  const meanReposPerActiveDay =
+    activeDays > 0 ? reposTouched.size / activeDays : 0;
 
   return {
     login,
     publicRepos: profile.public_repos,
     followers: profile.followers,
     languages,
+    topLanguages,
     documentedRepos: documented,
     recentPushes: recentPushes.length,
     activeDays,

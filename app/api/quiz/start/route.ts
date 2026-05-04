@@ -9,6 +9,12 @@ export const runtime = "nodejs";
 export async function POST() {
   const session = await auth().catch(() => null);
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Sign in with GitHub before starting the trial." },
+      { status: 401 },
+    );
+  }
 
   const attemptId = uuid();
   try {

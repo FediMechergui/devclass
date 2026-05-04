@@ -2,8 +2,8 @@
  * NextAuth v5 (Auth.js) configuration — GitHub OAuth.
  *
  * Wired but inert until AUTH_GITHUB_ID + AUTH_GITHUB_SECRET are set in the
- * environment. Users can take the quiz as a guest (cookie-based attempt id)
- * either way; signing in just attaches their attempts to a stable user.
+ * environment. The quiz/profile workflow now requires GitHub sign-in so an
+ * attempt can become a durable character sheet with public GitHub signals.
  *
  * After Vercel deploy:
  *   1) Create a GitHub OAuth app with callback https://<your-app>.vercel.app/api/auth/callback/github

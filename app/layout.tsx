@@ -23,7 +23,7 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Devclass — A character sheet for your developer mind",
   description:
-    "An evidence-informed reflection tool. Answer 33 honest questions; receive your nine pillars and your developer archetype. Not a hiring signal — a mirror.",
+    "An evidence-informed reflection tool. Answer 63 honest questions; receive your nine pillars and your developer archetype. Not a hiring signal — a mirror.",
   metadataBase: new URL("https://devclass.app"),
   openGraph: {
     title: "Devclass — Discover your developer archetype",

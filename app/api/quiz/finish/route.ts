@@ -5,16 +5,15 @@ import { QUESTIONS } from "@/lib/questions";
 import {
   computeRawScores,
   normalize,
-  assignClass,
-  dumbbell,
   assessIntegrity,
   applySignalBoosts,
 } from "@/lib/scoring";
-import { METRICS } from "@/lib/metrics";
 import { extractGitHubSignals, signalsToBoosts } from "@/lib/githubSignals";
+import { generateGitHubInsights } from "@/lib/gemini";
+import { buildResultPayload } from "@/lib/results";
 import type {
   AnswerRecord,
-  MetricCode,
+  GitHubInsightReport,
   GitHubSignals,
   ScoreVector,
 } from "@/lib/types";
@@ -23,6 +22,21 @@ export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  const session = await auth().catch(() => null);
+  type AuthedUser = {
+    id?: string;
+    githubLogin?: string;
+    githubAccessToken?: string;
+  };
+  const authUser = session?.user as AuthedUser | undefined;
+  const userId = authUser?.id ?? null;
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Sign in with GitHub before finishing the trial." },
+      { status: 401 },
+    );
+  }
+
   const body = await req.json();
   const { attemptId, answers } = body as {
     attemptId: string;
@@ -38,17 +52,9 @@ export async function POST(req: Request) {
   const { raw } = computeRawScores(answers, QUESTIONS);
   let normalized = normalize(raw);
   const integrity = assessIntegrity(answers, QUESTIONS);
-
-  const session = await auth();
-  type AuthedUser = {
-    id?: string;
-    githubLogin?: string;
-    githubAccessToken?: string;
-  };
-  const authUser = session?.user as AuthedUser | undefined;
-  const userId = authUser?.id ?? null;
   let githubSignals: GitHubSignals | undefined;
   let signalBoosts: Partial<ScoreVector> | undefined;
+  let githubInsights: GitHubInsightReport | undefined;
 
   const ghLogin = authUser?.githubLogin;
   const ghToken = authUser?.githubAccessToken;
@@ -65,78 +71,73 @@ export async function POST(req: Request) {
     }
   }
 
-  const assignment = assignClass(normalized);
-  const db_dumbbell = dumbbell(normalized);
-
-  const result = {
+  const finishedAt = new Date();
+  const preliminaryResult = buildResultPayload({
     attemptId,
     vector: normalized,
     raw,
-    primary: {
-      id: assignment.primary.id,
-      name: assignment.primary.name,
-      alias: assignment.primary.alias,
-      color: assignment.primary.color,
-      tagline: assignment.primary.tagline,
-      motto: assignment.primary.motto,
-      blurb: assignment.primary.blurb,
-      shadow: assignment.primary.shadow,
-      signatureRoles: assignment.primary.signatureRoles,
-      voice: assignment.primary.voice,
-    },
-    confidence: Number(assignment.confidence.toFixed(3)),
-    confidenceLabel: assignment.confidenceLabel,
     integrity: {
       suspect: integrity.suspect,
       note: integrity.note,
-      centroidRate: Number(integrity.centroidRate.toFixed(2)),
-      acquiescenceRate: Number(integrity.acquiescenceRate.toFixed(2)),
+      centroidRate: integrity.centroidRate,
+      acquiescenceRate: integrity.acquiescenceRate,
     },
-    multiclass: assignment.multiclass.map((m) => ({
-      id: m.archetype.id,
-      name: m.archetype.name,
-      cosine: Number(m.cosine.toFixed(4)),
-    })),
-    ranked: assignment.ranked.slice(0, 5).map((r) => ({
-      id: r.archetype.id,
-      name: r.archetype.name,
-      cosine: Number(r.cosine.toFixed(4)),
-    })),
-    strongest: db_dumbbell.strongest.map((s) => ({
-      code: s.m,
-      name: METRICS[s.m as MetricCode].name,
-      score: s.v,
-    })),
-    weakest: db_dumbbell.weakest.map((s) => ({
-      code: s.m,
-      name: METRICS[s.m as MetricCode].name,
-      score: s.v,
-    })),
     githubSignals: githubSignals ?? null,
     signalBoosts: signalBoosts ?? null,
-    finishedAt: new Date().toISOString(),
-  };
+    finishedAt,
+  });
+
+  if (githubSignals) {
+    githubInsights = await generateGitHubInsights({
+      primaryClass: preliminaryResult.primary.name,
+      vector: normalized,
+      strongest: preliminaryResult.strongest,
+      weakest: preliminaryResult.weakest,
+      githubSignals,
+      signalBoosts,
+    });
+  }
+
+  const result = buildResultPayload({
+    attemptId,
+    vector: normalized,
+    raw,
+    integrity: {
+      suspect: integrity.suspect,
+      note: integrity.note,
+      centroidRate: integrity.centroidRate,
+      acquiescenceRate: integrity.acquiescenceRate,
+    },
+    githubSignals: githubSignals ?? null,
+    signalBoosts: signalBoosts ?? null,
+    githubInsights: githubInsights ?? null,
+    finishedAt,
+  });
 
   try {
     const db = await getDb();
     await db.collection(COLLECTIONS.attempts).updateOne(
-      { attemptId },
+      { attemptId, userId },
       {
+        $setOnInsert: { attemptId, userId, startedAt: new Date() },
         $set: {
           answers,
           raw,
           normalized,
-          primaryClass: assignment.primary.id,
-          multiclass: assignment.multiclass.map((m) => m.archetype.id),
-          cosineToPrimary: assignment.primaryCosine,
-          confidence: assignment.confidence,
-          confidenceLabel: assignment.confidenceLabel,
+          primaryClass: result.primary.id,
+          multiclass: result.multiclass.map((m) => m.id),
+          cosineToPrimary: result.ranked[0]?.cosine ?? null,
+          confidence: result.confidence,
+          confidenceLabel: result.confidenceLabel,
           integritySuspect: integrity.suspect,
           integrityNote: integrity.note ?? null,
+          centroidRate: integrity.centroidRate,
+          acquiescenceRate: integrity.acquiescenceRate,
           githubSignals: githubSignals ?? null,
           signalBoosts: signalBoosts ?? null,
+          githubInsights: githubInsights ?? null,
           userId,
-          finishedAt: new Date(),
+          finishedAt,
         },
       },
       { upsert: true },
