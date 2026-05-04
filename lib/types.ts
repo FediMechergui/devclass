@@ -86,7 +86,38 @@ export interface AttemptDocument {
   primaryClass?: ArchetypeId;
   multiclass?: ArchetypeId[];
   cosineToPrimary?: number;
+  confidence?: number; // 0..1, deep-research §3
+  confidenceLabel?: "definitive" | "leaning" | "hybrid";
+  integritySuspect?: boolean;
+  integrityNote?: string;
+  githubSignals?: GitHubSignals;
+  signalBoosts?: Partial<ScoreVector>;
   plan?: unknown;
+}
+
+export interface GitHubSignals {
+  login: string;
+  publicRepos: number;
+  followers: number;
+  /** distinct top-level languages across non-fork public repos */
+  languages: string[];
+  /** count of non-fork repos with a non-empty README */
+  documentedRepos: number;
+  /** push events in the last 90 days */
+  recentPushes: number;
+  /** number of distinct days with push activity in last 90 days */
+  activeDays: number;
+  /** average number of repos updated per active day (proxy for context-switching) */
+  meanReposPerActiveDay: number;
+  fetchedAt: string;
+}
+
+export interface BuildLogEntry {
+  _id?: string;
+  userId: string;
+  text: string;
+  metric?: MetricCode;
+  createdAt: Date;
 }
 
 export interface UserDocument {

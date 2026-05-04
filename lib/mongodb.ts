@@ -41,4 +41,5 @@ export const COLLECTIONS = {
   users: "users",
   attempts: "attempts",
   answers: "answers",
+  buildLog: "build_log",
 } as const;

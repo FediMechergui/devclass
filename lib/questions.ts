@@ -1,11 +1,15 @@
 import type { Question } from "./types";
 
 /**
- * 33 carefully written questions.
+ * 63 carefully written questions (7 per pillar).
  * Mix of:
  *  - likert (agree/disagree, 1..5) — fast calibration on traits
  *  - forced_choice — "which is more like you" — defeats acquiescence bias
  *  - behavioral — "the last time X happened, what did you do" — anchored in concrete behavior
+ *
+ * Per-kind loadings are applied at scoring time (likert 1.0, forced_choice 1.5, behavioral 2.0):
+ * cheaper-to-fake answers count for less. Roughly one in three Likert items is reverse-keyed
+ * to detect acquiescence bias and break straight-line response patterns.
  *
  * Wording avoids virtue-signaling cues (no "best practice", no "do you write tests").
  * Where reverse-scored, the higher-scoring response is INVERTED so all metrics still grow upward.
@@ -299,6 +303,299 @@ export const QUESTIONS: Question[] = [
     options: [
       { label: "When I'm stuck, writing it out (in chat, in a doc) often unsticks me.", value: 1, metricDeltas: { COM: 8, REG: 2 } },
       { label: "When I'm stuck, writing slows me down. I push through.", value: 0, metricDeltas: { COM: -4, FOC: 4 } },
+    ],
+  },
+
+  // ============================================================
+  // Expansion set — 30 additional items (3–4 per pillar)
+  // Brings total to 63, balancing kinds and adding reverse-keyed
+  // Likerts so straight-line response patterns get caught.
+  // ============================================================
+
+  // ---------- ANL: Analytical Decomposition (+3 → 7) ----------
+  {
+    id: "anl_5",
+    kind: "likert",
+    metric: "ANL",
+    prompt: "Faced with an unfamiliar codebase, I'd rather draw the module graph on paper than start grepping.",
+  },
+  {
+    id: "anl_6",
+    kind: "forced_choice",
+    metric: "ANL",
+    prompt: "When estimating a new piece of work:",
+    options: [
+      { label: "I quote from gut after skimming the ticket.", value: 0, metricDeltas: { ANL: -6, COM: -2 } },
+      { label: "I decompose into the 3–5 smallest unknowns first, then estimate each.", value: 1, metricDeltas: { ANL: 8, INT: 4 } },
+    ],
+  },
+  {
+    id: "anl_7",
+    kind: "behavioral",
+    metric: "ANL",
+    prompt: "An incident postmortem assigns root cause to 'human error.' Your reaction:",
+    options: [
+      { label: "Accept it. People mess up.", value: 15, metricDeltas: { ANL: -8, INT: -4 } },
+      { label: "Add an item to the runbook so the next person catches it.", value: 55, metricDeltas: { ANL: 2, COM: 4 } },
+      { label: "Push back: the system permitted the mistake — that's the cause.", value: 90, metricDeltas: { ANL: 8, CRT: 6 } },
+      { label: "Keep asking 'and what made that possible?' until it bottoms out.", value: 100, metricDeltas: { ANL: 10, CRT: 6, INT: 4 } },
+    ],
+  },
+
+  // ---------- CRT: Critical Skepticism (+3 → 7) ----------
+  {
+    id: "crt_5",
+    kind: "likert",
+    metric: "CRT",
+    reverse: true,
+    prompt: "When a benchmark from a reputable source shows impressive numbers, I take them at face value.",
+  },
+  {
+    id: "crt_6",
+    kind: "behavioral",
+    metric: "CRT",
+    prompt: "Your team votes 6–1 to adopt a new framework. You're the 1. What do you do?",
+    options: [
+      { label: "Defer. The team probably knows.", value: 20, metricDeltas: { CRT: -6, REG: 2 } },
+      { label: "State my concerns once and go along with the decision.", value: 55, metricDeltas: { CRT: 2, COM: 2 } },
+      { label: "Ask each yes-voter what failure mode they've already considered.", value: 90, metricDeltas: { CRT: 10, ANL: 4 } },
+      { label: "Write a one-page memo with the trade-offs I see and circulate it.", value: 95, metricDeltas: { CRT: 8, COM: 8, INT: 4 } },
+    ],
+  },
+  {
+    id: "crt_7",
+    kind: "forced_choice",
+    metric: "CRT",
+    prompt: "Closer to your default:",
+    options: [
+      { label: "I trust evidence I have to gather over comfortable authority.", value: 1, metricDeltas: { CRT: 8, INT: 4 } },
+      { label: "I trust an authority I respect over evidence I'd have to gather myself.", value: 0, metricDeltas: { CRT: -6 } },
+    ],
+  },
+
+  // ---------- CRE: Creative Synthesis (+4 → 7) ----------
+  {
+    id: "cre_4",
+    kind: "forced_choice",
+    metric: "CRE",
+    prompt: "When the requirements are loose:",
+    options: [
+      { label: "I love it — that's where the real design lives.", value: 1, metricDeltas: { CRE: 8, CUR: 2 } },
+      { label: "I dislike it — I want a spec before I can move.", value: 0, metricDeltas: { CRE: -6, FOC: 4 } },
+    ],
+  },
+  {
+    id: "cre_5",
+    kind: "likert",
+    metric: "CRE",
+    prompt: "I keep a notebook (digital or paper) of half-baked ideas I might revisit.",
+  },
+  {
+    id: "cre_6",
+    kind: "behavioral",
+    metric: "CRE",
+    prompt: "You hit a textbook problem (e.g. dedup users by fuzzy match). You:",
+    options: [
+      { label: "Use the textbook answer. Move on.", value: 40, metricDeltas: { CRE: -2, FOC: 4 } },
+      { label: "Use the textbook answer but think briefly about edge cases.", value: 65, metricDeltas: { CRE: 2, ANL: 4 } },
+      { label: "Ask whether the problem can be reframed so it goes away.", value: 100, metricDeltas: { CRE: 10, ANL: 6 } },
+      { label: "Build something novel because the textbook answer is boring.", value: 50, metricDeltas: { CRE: 6, INT: -4, FOC: -4 } },
+    ],
+  },
+  {
+    id: "cre_7",
+    kind: "likert",
+    metric: "CRE",
+    reverse: true,
+    prompt: "I prefer working inside well-established conventions over inventing new ones.",
+  },
+
+  // ---------- DOM: Domain Mastery (+3 → 7) ----------
+  {
+    id: "dom_5",
+    kind: "likert",
+    metric: "DOM",
+    prompt: "I have read at least one piece of source code longer than 1,000 lines that I wasn't required to.",
+  },
+  {
+    id: "dom_6",
+    kind: "behavioral",
+    metric: "DOM",
+    prompt: "A teammate proposes adding Redis to fix a perceived hot-path issue. You:",
+    options: [
+      { label: "Sounds reasonable. Ship it.", value: 15, metricDeltas: { DOM: -6, CRT: -4 } },
+      { label: "Ask for measurements before agreeing.", value: 70, metricDeltas: { DOM: 6, CRT: 6 } },
+      { label: "Profile the actual bottleneck myself first.", value: 95, metricDeltas: { DOM: 10, CRT: 4 } },
+      { label: "Suggest a cheaper in-process cache and explain when Redis would actually be needed.", value: 100, metricDeltas: { DOM: 10, COM: 6 } },
+    ],
+  },
+  {
+    id: "dom_7",
+    kind: "forced_choice",
+    metric: "DOM",
+    prompt: "Closer to how you grow:",
+    options: [
+      { label: "Depth in 1–2 areas; I want the layer below the layer below.", value: 1, metricDeltas: { DOM: 8, FOC: 2 } },
+      { label: "Breadth across many — I'd rather know a little about a lot.", value: 0, metricDeltas: { DOM: -4, CUR: 6 } },
+    ],
+  },
+
+  // ---------- FOC: Focused Persistence (+3 → 7) ----------
+  {
+    id: "foc_5",
+    kind: "likert",
+    metric: "FOC",
+    prompt: "I keep a single 'next action' list and work it down rather than juggling everything in my head.",
+  },
+  {
+    id: "foc_6",
+    kind: "behavioral",
+    metric: "FOC",
+    prompt: "Two months in, the novelty of a project is gone. Honest:",
+    options: [
+      { label: "I start eyeing other things.", value: 20, metricDeltas: { FOC: -8, CUR: 2 } },
+      { label: "I push through; the boring 80 is where it's earned.", value: 100, metricDeltas: { FOC: 10, INT: 4 } },
+      { label: "I negotiate scope down so we can ship sooner.", value: 70, metricDeltas: { FOC: 4, COM: 4, INT: -2 } },
+      { label: "I refactor for fun to feel productive again.", value: 35, metricDeltas: { FOC: -4, CRE: 4 } },
+    ],
+  },
+  {
+    id: "foc_7",
+    kind: "likert",
+    metric: "FOC",
+    reverse: true,
+    prompt: "I rarely re-open old code unless something is visibly broken.",
+  },
+
+  // ---------- CUR: Cultivated Curiosity (+4 → 7) ----------
+  {
+    id: "cur_4",
+    kind: "likert",
+    metric: "CUR",
+    prompt: "I follow at least one engineer or researcher whose work makes me feel slightly out of my depth.",
+  },
+  {
+    id: "cur_5",
+    kind: "forced_choice",
+    metric: "CUR",
+    prompt: "When you learn something new:",
+    options: [
+      { label: "I want to ship it on the next thing I build.", value: 0, metricDeltas: { CUR: 4, FOC: 4 } },
+      { label: "I want to understand WHY it works before I trust it.", value: 1, metricDeltas: { CUR: 8, DOM: 6 } },
+    ],
+  },
+  {
+    id: "cur_6",
+    kind: "behavioral",
+    metric: "CUR",
+    prompt: "It's Sunday morning. Honestly, what are you most likely doing?",
+    options: [
+      { label: "Avoiding screens — weekends are for recovery.", value: 40, metricDeltas: { CUR: -4, REG: 6 } },
+      { label: "Scrolling Hacker News / Twitter on autopilot.", value: 50, metricDeltas: { CUR: 0 } },
+      { label: "Reading a paper or a long-form deep dive.", value: 95, metricDeltas: { CUR: 10, DOM: 4 } },
+      { label: "Building something nobody asked for.", value: 100, metricDeltas: { CUR: 10, CRE: 6 } },
+    ],
+  },
+  {
+    id: "cur_7",
+    kind: "likert",
+    metric: "CUR",
+    reverse: true,
+    prompt: "If a topic isn't directly useful for my current job, I don't make time for it.",
+  },
+
+  // ---------- INT: Engineering Integrity (+3 → 7) ----------
+  {
+    id: "int_5",
+    kind: "likert",
+    metric: "INT",
+    prompt: "I have added a comment that says 'this is a hack and here's why' rather than disguising it as clean code.",
+  },
+  {
+    id: "int_6",
+    kind: "forced_choice",
+    metric: "INT",
+    prompt: "Closer to how you think about your work:",
+    options: [
+      { label: "The product is the feature behavior users see.", value: 0, metricDeltas: { INT: -4, COM: 2 } },
+      { label: "The product is the code people will inherit and have to live with.", value: 1, metricDeltas: { INT: 10, COM: 4 } },
+    ],
+  },
+  {
+    id: "int_7",
+    kind: "behavioral",
+    metric: "INT",
+    prompt: "A metric you own quietly improved because of a bug, not because of work. You:",
+    options: [
+      { label: "Take the win quietly.", value: 5, metricDeltas: { INT: -10, REG: -2 } },
+      { label: "Mention it offhand in the next standup.", value: 60, metricDeltas: { INT: 4, COM: 4 } },
+      { label: "Surface it immediately and reverse the bad attribution.", value: 100, metricDeltas: { INT: 10, COM: 6, CRT: 4 } },
+    ],
+  },
+
+  // ---------- REG: Self-Regulation (+4 → 7) ----------
+  {
+    id: "reg_4",
+    kind: "likert",
+    metric: "REG",
+    prompt: "I notice the gap between 'wanting to reply now' and actually replying — and I use it.",
+  },
+  {
+    id: "reg_5",
+    kind: "forced_choice",
+    metric: "REG",
+    prompt: "More honest about you:",
+    options: [
+      { label: "I work better under deadline pressure.", value: 0, metricDeltas: { REG: -6, FOC: 4 } },
+      { label: "I work better when I've paced myself.", value: 1, metricDeltas: { REG: 8, FOC: 2 } },
+    ],
+  },
+  {
+    id: "reg_6",
+    kind: "behavioral",
+    metric: "REG",
+    prompt: "You're 90 minutes into a meeting that should have been 30. You:",
+    options: [
+      { label: "Stay polite, stay quiet.", value: 30, metricDeltas: { REG: 2, COM: -4 } },
+      { label: "Note the time and let it run.", value: 45, metricDeltas: { REG: 0 } },
+      { label: "Suggest we end and follow up async.", value: 95, metricDeltas: { REG: 8, COM: 8 } },
+      { label: "Get visibly impatient.", value: 15, metricDeltas: { REG: -10, COM: -4 } },
+    ],
+  },
+  {
+    id: "reg_7",
+    kind: "likert",
+    metric: "REG",
+    reverse: true,
+    prompt: "When I'm in flow, taking a break feels like a betrayal of momentum.",
+  },
+
+  // ---------- COM: Communicative Clarity (+3 → 7) ----------
+  {
+    id: "com_5",
+    kind: "likert",
+    metric: "COM",
+    prompt: "I write doc comments that explain why a function exists, not just what its parameters are.",
+  },
+  {
+    id: "com_6",
+    kind: "behavioral",
+    metric: "COM",
+    prompt: "A junior asks you a question whose honest answer is 'it depends.' You:",
+    options: [
+      { label: "Say 'it depends' and move on.", value: 15, metricDeltas: { COM: -8 } },
+      { label: "Give them the most common answer for their situation.", value: 60, metricDeltas: { COM: 4 } },
+      { label: "Walk them through the 2–3 axes the answer actually depends on.", value: 100, metricDeltas: { COM: 10, CUR: 4, INT: 4 } },
+    ],
+  },
+  {
+    id: "com_7",
+    kind: "forced_choice",
+    metric: "COM",
+    prompt: "Closer to your stance:",
+    options: [
+      { label: "Docs get written when there's time.", value: 0, metricDeltas: { COM: -6, INT: -4 } },
+      { label: "Docs are part of done.", value: 1, metricDeltas: { COM: 10, INT: 6 } },
     ],
   },
 ];
