@@ -46,8 +46,8 @@ export function MetricGlyph({ code, size = 28, color = "#E8DCC4" }: Props) {
           {Array.from({ length: 9 }).map((_, i) => {
             const a = (i * 360) / 9;
             const rad = (a * Math.PI) / 180;
-            const x2 = 16 + Math.cos(rad) * 12;
-            const y2 = 16 + Math.sin(rad) * 12;
+            const x2 = (16 + Math.cos(rad) * 12).toFixed(3);
+            const y2 = (16 + Math.sin(rad) * 12).toFixed(3);
             return <line key={i} x1="16" y1="16" x2={x2} y2={y2} stroke={c} strokeWidth={sw} />;
           })}
           <circle cx="16" cy="16" r="2" fill={c} />
