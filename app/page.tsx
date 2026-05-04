@@ -7,7 +7,6 @@ import {
   Compass,
   Github,
   Radio,
-  Sparkles,
   Target,
   Zap,
 } from "lucide-react";
@@ -19,8 +18,7 @@ import { MetricGlyph } from "@/components/MetricGlyph";
 import { AuthBar } from "@/components/AuthBar";
 import { ClassGallery } from "@/components/ClassGallery";
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1800&q=80";
+const HERO_IMAGE = "/banner.PNG";
 
 export default function LandingPage() {
   return (
@@ -37,7 +35,7 @@ export default function LandingPage() {
         <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[minmax(0,1fr)_420px]">
           <div>
             <div className="mb-5 inline-flex items-center gap-2 border border-gold/30 bg-ink-base/55 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.32em] text-gold-bright">
-              <Sparkles size={14} /> Devclass v0.1
+              Devclass v0.1
             </div>
             <h1 className="font-display text-7xl leading-none text-parchment-100 md:text-9xl">
               Devclass

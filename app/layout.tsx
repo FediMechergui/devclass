@@ -30,6 +30,7 @@ export const metadata: Metadata = {
     description:
       "Nine pillars. Ten archetypes. One honest mirror for the way you think and build.",
     type: "website",
+    images: ["/banner.PNG"],
   },
 };
 

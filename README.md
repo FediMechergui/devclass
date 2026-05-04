@@ -1,116 +1,174 @@
+<p align="center">
+  <img src="./banner.PNG" alt="Devclass banner" width="100%" />
+</p>
+
 # Devclass
 
-> What kind of engineer are you, really?
+Devclass is a developer self-assessment that turns a signed-in quiz into a durable character sheet. It combines a 63-question assessment, nine engineering pillars, ten developer archetypes, public GitHub signals, and Gemini-generated profile notes into one profile you can revisit, delete, and retake.
 
-A 33-question self-assessment that maps software engineers across 9 pillars to one of 10 archetypes, then generates a personalized 4-week development plan in the voice of that archetype.
+It is meant to feel like a living developer RPG sheet. It is not a hiring signal, leaderboard, or validated personality test.
 
-Built with Next.js 15, MongoDB Atlas, NextAuth (Auth.js v5), Tailwind, Framer Motion, and Google Gemini.
+## What It Does
+
+- Requires GitHub sign-in before the trial so each result can be saved to an account.
+- Scores 63 research-grounded questions across nine engineering pillars.
+- Assigns one of ten developer archetypes, with confidence, shadow, voice, and class affinities.
+- Pulls public GitHub signals such as repo count, top languages, README coverage, and recent push cadence.
+- Uses Gemini to write GitHub-aware profile takes and a four-week development plan.
+- Keeps a durable `/profile` page with radar scores, GitHub language breakdown, plan, daily practice, build log, and community distribution.
+- Supports deleting the saved test result and retaking the trial with clean redirects.
+
+## Product Flow
+
+1. A visitor lands on Devclass and signs in with GitHub.
+2. The quiz starts only after authentication.
+3. Answers are saved against the signed-in user.
+4. Finishing the quiz computes the score vector, applies capped public GitHub context, assigns the class, and stores the result.
+5. The reveal page shows the assigned class.
+6. The profile page can be revisited later with the class sheet, GitHub insights, AI plan, private build log, retake, and delete controls.
 
 ## Stack
 
-- **Next.js 15** App Router · React 19 RC · TypeScript strict
-- **MongoDB Atlas** for attempts, answers, users (via `@auth/mongodb-adapter`)
-- **NextAuth v5** with GitHub OAuth (added post-deploy)
-- **Google Gemini 2.5 Flash** for plan generation
-- **Tailwind 3.4** with custom monastery-codex design system
-- **Framer Motion** for the reveal sequence and crest animations
-- **Recharts** for the 9-axis radar
+| Area | Tooling |
+| --- | --- |
+| Framework | Next.js 16 App Router, React 19 RC, TypeScript strict |
+| Styling | Tailwind CSS, Framer Motion, custom visual system |
+| Auth | Auth.js / NextAuth v5 with GitHub OAuth |
+| Data | MongoDB Atlas with `@auth/mongodb-adapter` |
+| AI | Google Gemini 2.5 Flash via `@google/generative-ai` |
+| Charts | Recharts radar visualization |
+| Icons | lucide-react plus custom class crests and metric glyphs |
 
-## Local development
+## Assets
+
+- Repository banner: [banner.PNG](banner.PNG)
+- App-served banner copy: [public/banner.PNG](public/banner.PNG)
+- App icon: [app/icon.svg](app/icon.svg)
+
+The live homepage uses the same `banner.PNG` artwork as the hero background. There is no hand-authored `index.html` in this app; the homepage source is [app/page.tsx](app/page.tsx), and Next.js generates the final HTML.
+
+## Local Development
 
 ```powershell
-# 1. install
 npm install
-
-# 2. .env should already exist with MONGODB_URI and GEMINI_API_KEY
-#    (copy .env.example if not)
-
-# 3. run
+Copy-Item .env.example .env
 npm run dev
 ```
 
-Visit http://localhost:3000.
+Open [http://localhost:3000](http://localhost:3000).
 
-The quiz works fully in **guest mode** — no auth required. GitHub OAuth is only wired up if `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are present in env.
+The quiz requires GitHub OAuth credentials because results are account-based.
 
-## Environment variables
+## Environment Variables
 
 | Variable | Required | Purpose |
-|---|---|---|
-| `MONGODB_URI` | yes | Atlas connection string |
-| `MONGODB_DB` | optional | Database name (default: `devclass`) |
-| `GEMINI_API_KEY` | yes (for plans) | Falls back to a hand-written plan if absent |
-| `AUTH_SECRET` | yes (in prod) | NextAuth JWT secret. Generate: `openssl rand -base64 32` |
-| `AUTH_GITHUB_ID` | optional | Enables GitHub sign-in if set |
-| `AUTH_GITHUB_SECRET` | optional | Required with `AUTH_GITHUB_ID` |
-| `NEXTAUTH_URL` | optional | Auto-set on Vercel |
+| --- | --- | --- |
+| `MONGODB_URI` | Yes | MongoDB Atlas connection string. |
+| `MONGODB_DB` | No | Database name. Defaults to `devclass`. |
+| `AUTH_SECRET` | Yes | Auth.js secret. Generate with `openssl rand -base64 32`. |
+| `NEXTAUTH_URL` | Yes locally | Use `http://localhost:3000` locally. |
+| `AUTH_GITHUB_ID` | Yes | GitHub OAuth client ID. |
+| `AUTH_GITHUB_SECRET` | Yes | GitHub OAuth client secret. |
+| `GEMINI_API_KEY` | No | Enables Gemini profile notes and plans. Fallback copy is used when absent. |
 
-## Deploying to Vercel
+## GitHub OAuth Setup
 
-1. Push this repo to GitHub.
-2. Import into Vercel (framework: Next.js, no overrides needed).
-3. Add env vars in **Settings → Environment Variables**:
-   - `MONGODB_URI`
-   - `GEMINI_API_KEY`
-   - `AUTH_SECRET` (generate fresh, do not reuse local)
-4. Deploy.
+Create a GitHub OAuth app from [GitHub Developer Settings](https://github.com/settings/developers).
 
-### Adding GitHub OAuth (after first deploy)
+For local development:
 
-1. https://github.com/settings/developers → **New OAuth App**
-   - Homepage URL: `https://your-app.vercel.app`
-   - Authorization callback URL: `https://your-app.vercel.app/api/auth/callback/github`
-   - Scopes requested by the app: `read:user user:email public_repo`
-2. Copy the Client ID and generate a Client Secret.
-3. In Vercel: add `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET`, redeploy.
+| Field | Value |
+| --- | --- |
+| Homepage URL | `http://localhost:3000` |
+| Authorization callback URL | `http://localhost:3000/api/auth/callback/github` |
 
-The auth provider self-registers only when both vars are present, so the build is safe before this step.
+For production, replace the host with your deployed URL.
 
-## Project shape
+The app requests `read:user`, `user:email`, and `public_repo` so it can authenticate the user and read public repository signals.
 
+## Scripts
+
+```powershell
+npm run dev
+npm run typecheck
+npm run build
+npm run start
 ```
+
+## Project Structure
+
+```text
 app/
-  page.tsx               landing
-  quiz/page.tsx          one-question-at-a-time trial
-  reveal/page.tsx        5-second class reveal sequence
-  profile/page.tsx       character sheet + radar + plan
-  methodology/page.tsx   citations and honest framing
+  page.tsx                  landing page and hero banner
+  quiz/                     signed-in assessment flow
+  reveal/                   class reveal screen
+  profile/                  durable character sheet
+  methodology/              research framing and limitations
   api/
-    auth/[...nextauth]/  NextAuth handlers
-    quiz/start           creates attempt, returns questions
-    quiz/answer          $push answer
-    quiz/finish          score → assign class → persist
-    plan/generate        Gemini-powered 4-week plan
-lib/
-  types.ts               MetricCode, Archetype, Question, …
-  metrics.ts             the 9 pillars
-  archetypes.ts          the 10 reference vectors
-  questions.ts           33 items (likert + behavioral)
-  scoring.ts             raw → normalized → cosine assignment
-  mongodb.ts             cached client for HMR
-  gemini.ts              plan generation + safe fallback
+    auth/[...nextauth]/     Auth.js route handlers
+    quiz/                   start, answer, finish endpoints
+    profile/                load/delete saved result
+    plan/generate/          Gemini plan generation
+    buildlog/               private practice notes
+    community/distribution/ anonymous archetype distribution
 components/
-  ClassCrest.tsx         10 distinct animated SVG crests
-  MetricGlyph.tsx        9 distinct metric icons
-  MetricRadar.tsx        recharts radar
-  RuneProgress.tsx       diamond-rune step indicator
-auth.ts                  NextAuth config (conditional GitHub)
+  ClassGallery.tsx          visual archetype gallery
+  ClassCrest.tsx            class crest SVGs
+  MetricGlyph.tsx           metric glyph SVGs
+  MetricRadar.tsx           radar chart
+  SignInGate.tsx            signed-out gate for quiz/profile
+lib/
+  archetypes.ts             ten class vectors and copy
+  questions.ts              63 assessment questions
+  scoring.ts                scoring, normalization, integrity checks
+  githubSignals.ts          public GitHub signal extraction
+  gemini.ts                 AI plans and GitHub-aware profile takes
+  results.ts                durable result payload shaping
+  mongodb.ts                MongoDB client
+public/
+  banner.PNG                static copy of the repository banner
 ```
 
-## What this is, and isn't
+## Methodology
 
-- **It is**: an opinionated self-reflection tool for engineers who like the framing of class-based RPGs.
-- **It is not**: psychometrically validated. There is no test-retest study, no behavioral correlation, no factor analysis. The pillars overlap on purpose. Read [`app/methodology/page.tsx`](app/methodology/page.tsx) for the honest disclaimer.
+Devclass is an opinionated reflection instrument. It is not a validated personality test, hiring signal, leaderboard, or claim about developer worth.
+
+The model uses nine overlapping pillars:
+
+- Analytical Decomposition
+- Critical Skepticism
+- Creative Synthesis
+- Domain Mastery
+- Focused Persistence
+- Cultivated Curiosity
+- Engineering Integrity
+- Self-Regulation
+- Communicative Clarity
+
+Class assignment is based on the shape of a normalized nine-pillar vector. GitHub data can add small capped boosts, but it never overrides the questionnaire.
+
+Read the full methodology in [app/methodology/page.tsx](app/methodology/page.tsx).
+
+## Privacy Notes
+
+- Quiz attempts are associated with the signed-in user account.
+- The app reads public GitHub profile and repository data only.
+- Build log entries are private to the signed-in user.
+- Community distribution is anonymous counts only.
+- Users can delete their saved quiz result from the profile and retake the assessment.
 
 ## Credits
 
-- "Are You A Good Programmer?" — Manware (May 2026) · the catalyst question
-- *A Philosophy of Software Design* — John Ousterhout
-- *The Pragmatic Programmer* — Hunt & Thomas
-- *Designing Data-Intensive Applications* — Martin Kleppmann
-- "Programming as Theory Building" — Peter Naur (1985)
-- "No Silver Bullet" — Fred Brooks (1986)
+Devclass is shaped by software design and engineering-practice literature, including:
+
+- Manware, "Are You A Good Programmer?"
+- John Ousterhout, *A Philosophy of Software Design*
+- Hunt and Thomas, *The Pragmatic Programmer*
+- Martin Kleppmann, *Designing Data-Intensive Applications*
+- Peter Naur, "Programming as Theory Building"
+- Fred Brooks, "No Silver Bullet"
+- Costa and McCrae's Big Five literature, adapted only as loose vector-space inspiration
 
 ## License
 
-MIT.
+No license file is currently included. Add one before accepting public contributions.
